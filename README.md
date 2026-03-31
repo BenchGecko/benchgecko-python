@@ -1,0 +1,110 @@
+# benchgecko
+
+Python client for [BenchGecko](https://benchgecko.ai), the AI model data platform. Look up benchmarks, compare models head-to-head, explore provider pricing, and estimate inference costs with a clean Pythonic API and zero dependencies.
+
+BenchGecko tracks 414 models across 55 providers and 40 benchmarks, giving developers and teams the data they need to pick the right model for every task.
+
+## Installation
+
+```bash
+pip install benchgecko
+```
+
+## Quick Start
+
+```python
+import benchgecko as bg
+
+# Look up a model
+model = bg.get_model("claude-3-5-sonnet")
+print(model["name"])                  # Claude 3.5 Sonnet
+print(model["provider"])              # Anthropic
+print(model["benchmarks"]["mmlu"])    # 88.7
+
+# Estimate cost for a single call
+cost = bg.estimate_cost("gpt-4o", input_tokens=4000, output_tokens=1000)
+print(f"Total: ${cost['total_cost']}")  # Total: $0.02
+```
+
+## API Reference
+
+### get_model(slug)
+
+Returns the full data dictionary for a model, including benchmark scores and pricing. Returns `None` if the slug is not found.
+
+```python
+gpt4o = bg.get_model("gpt-4o")
+# {"slug", "name", "provider", "context_window", "input_price_per_1m", "output_price_per_1m", "benchmarks"}
+```
+
+### compare_models(slug_a, slug_b)
+
+Side-by-side comparison across every tracked benchmark, plus a pricing cost ratio. Useful for building comparison tables or making procurement decisions programmatically.
+
+```python
+cmp = bg.compare_models("gpt-4o", "claude-3-5-sonnet")
+
+# Per-benchmark delta
+print(cmp["benchmarks"]["humaneval"])
+# {"a": 90.2, "b": 92.0, "delta": -1.8, "winner": "claude-3-5-sonnet"}
+
+# Which model is cheaper overall?
+print(cmp["pricing"]["cheaper_model"])  # gpt-4o
+print(cmp["pricing"]["cost_ratio"])     # 0.694
+```
+
+### get_pricing(provider)
+
+Lists every model from a provider with input/output pricing per million tokens and context window size.
+
+```python
+for m in bg.get_pricing("anthropic"):
+    print(f"{m['name']}: ${m['input_price_per_1m']}/M in, ${m['output_price_per_1m']}/M out")
+# Claude 3.5 Sonnet: $3.0/M in, $15.0/M out
+# Claude 3 Haiku: $0.25/M in, $1.25/M out
+```
+
+### list_benchmarks()
+
+Returns metadata for all tracked benchmarks: name, full name, description, and scoring scale.
+
+```python
+for b in bg.list_benchmarks():
+    print(f"{b['name']} ({b['full_name']}): {b['description']}")
+```
+
+### estimate_cost(model, input_tokens, output_tokens)
+
+Calculates the USD cost for a single inference call broken down by input and output tokens.
+
+```python
+estimate = bg.estimate_cost("deepseek-v3", input_tokens=10_000, output_tokens=2_000)
+print(estimate)
+# {"model": "deepseek-v3", "input_cost": 0.0027, "output_cost": 0.0022, "total_cost": 0.0049, ...}
+```
+
+### list_models() / list_providers()
+
+Convenience helpers that return sorted lists of all available model slugs and provider keys.
+
+```python
+print(bg.list_models())
+# ["claude-3-5-sonnet", "claude-3-haiku", "command-r-plus", "deepseek-v3", ...]
+
+print(bg.list_providers())
+# ["anthropic", "cohere", "deepseek", "google", "meta", "mistral", "openai"]
+```
+
+## Data Coverage
+
+The bundled snapshot covers the most-used models from OpenAI, Anthropic, Google, Meta, Mistral, DeepSeek, and Cohere. For the full catalogue of 414 models, 55 providers, and 40 benchmarks, visit [benchgecko.ai](https://benchgecko.ai).
+
+Pricing data and benchmark scores are updated with each package release. For real-time pricing, check the [pricing page](https://benchgecko.ai/pricing).
+
+## Requirements
+
+Python 3.8 or later. No external dependencies.
+
+## License
+
+MIT
