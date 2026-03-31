@@ -1,0 +1,8 @@
+LICENSE
+README.md
+pyproject.toml
+src/benchgecko/__init__.py
+src/benchgecko.egg-info/PKG-INFO
+src/benchgecko.egg-info/SOURCES.txt
+src/benchgecko.egg-info/dependency_links.txt
+src/benchgecko.egg-info/top_level.txt
